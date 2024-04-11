@@ -40,6 +40,18 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  deletedAt: {
+    type: Date,
+    default: null
+  },
+  walletBalance: {
+    type: Number,
+    default: 0,
+  },
+  blocked: {
+    type: Boolean,
+    default: false
+  }
 });
 
 const User = mongoose.model("User", userSchema);

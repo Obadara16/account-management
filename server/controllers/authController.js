@@ -22,27 +22,24 @@ const refreshToken = async (req, res) => {
   const accessToken = authHeader && authHeader.split(' ')[1];
 
   if (!accessToken) {
-    return res.status(401).json({ error: "Access token is required" });
+    return res.status(401).json({ status_code: 401, status: "error", error: "Access token is required" });
   }
 
   try {
     const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
 
     if (!decoded || !(decoded.userId || decoded.adminId) || !decoded.role) {
-      return res.status(401).json({ error: "Invalid access token" });
+      return res.status(401).json({ status_code: 401, status: "error", error: "Invalid access token" });
     }
 
     const newAccessToken = generateAccessToken(decoded.userId, decoded.adminId, decoded.role);
 
-    res.status(200).json({ accessToken: newAccessToken, message: "Access token refreshed successfully" });
+    res.status(200).json({ status_code: 200, status: "success", accessToken: newAccessToken, message: "Access token refreshed successfully" });
   } catch (error) {
     console.error(error);
-    res.status(401).json({ error: "Invalid access token" });
+    res.status(401).json({ status_code: 401, status: "error", error: "Invalid access token" });
   }
 };
-
-
-
 
 const verifyOTP = async (req, res) => {
   const { email, otp } = req.body;
@@ -52,17 +49,17 @@ const verifyOTP = async (req, res) => {
     const verification = await Verification.findOne({ email });
 
     if (!verification) {
-      return res.status(404).json({ error: "Verification entry not found" });
+      return res.status(404).json({ status_code: 404, status: "error", error: "Verification entry not found" });
     }
 
     
     if (verification.otp !== otp) {
-      return res.status(400).json({ error: "Invalid OTP" });
+      return res.status(400).json({ status_code: 400, status: "error", error: "Invalid OTP" });
     }
 
     
     if (verification.otpExpiresAt < new Date()) {
-      return res.status(400).json({ error: "OTP has expired" });
+      return res.status(400).json({ status_code: 400, status: "error", error: "OTP has expired" });
     }
 
     
@@ -72,17 +69,17 @@ const verifyOTP = async (req, res) => {
     }
 
     if (!user) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(404).json({ status_code: 404, status: "error", error: "User not found" });
     }
 
     
     user.isActive = true;
     await user.save();
 
-    res.status(200).json({ message: "OTP verified successfully" });
+    res.status(200).json({ status_code: 200, status: "success", message: "OTP verified successfully" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ status_code: 500, status: "error", error: "Internal Server Error" });
   }
 };
 
@@ -90,17 +87,15 @@ const verifyOTP = async (req, res) => {
 const forgotPassword = async (req, res) => {
   const { email } = req.body;
 
-
   try {
     let user = await User.findOne({ email });
-
 
     if (!user) {
       user = await Admin.findOne({ email });
     }
 
     if (!user) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(404).json({ status_code: 404, status: "error", error: "User not found" });
     }
 
     const resetToken = crypto.randomBytes(20).toString("hex");
@@ -112,10 +107,10 @@ const forgotPassword = async (req, res) => {
 
     await sendResetPasswordEmail(email, resetLink);
 
-    res.status(200).json({ message: "Password reset link sent successfully" });
+    res.status(200).json({ status_code: 200, status: "success", message: "Password reset link sent successfully" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ status_code: 500, status: "error", error: "Internal Server Error" });
   }
 };
 
@@ -125,16 +120,13 @@ const resetPassword = async (req, res) => {
 
   try {
     let user = await User.findOne({ resetToken });
-    console.log("this is a user:")
-
 
     if (!user) {
       user = await Admin.findOne({ resetToken });
-      console.log("this is an admin:")
     };
 
     if (!user || user.resetTokenExpires < Date.now()) {
-      return res.status(400).json({ error: "Invalid or expired reset token" });
+      return res.status(400).json({ status_code: 400, status: "error", error: "Invalid or expired reset token" });
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -145,14 +137,12 @@ const resetPassword = async (req, res) => {
     user.resetTokenExpires = undefined;
     await user.save();
 
-    res.status(200).json({ message: "Password reset successfully" });
+    res.status(200).json({ status_code: 200, status: "success", message: "Password reset successfully" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ status_code: 500, status: "error", error: "Internal Server Error" });
   }
 };
-
-
 
 const requestNewOTP = async (req, res) => {
   const { email } = req.body;
@@ -163,7 +153,7 @@ const requestNewOTP = async (req, res) => {
 
     
     if (!verification) {
-      return res.status(404).json({ error: "Verification entry not found" });
+      return res.status(404).json({ status_code: 404, status: "error", error: "Verification entry not found" });
     }
 
     
@@ -181,13 +171,12 @@ const requestNewOTP = async (req, res) => {
     await sendVerificationEmail(email, otp);
 
     
-    res.status(200).json({ message: "New OTP sent successfully" });
+    res.status(200).json({ status_code: 200, status: "success", message: "New OTP sent successfully" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ status_code: 500, status: "error", error: "Internal Server Error" });
   }
 };
-
 
 const changePassword = async (req, res) => {
   const { email, oldPassword, newPassword } = req.body;
@@ -200,13 +189,13 @@ const changePassword = async (req, res) => {
     }
 
     if (!user) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(404).json({ status_code: 404, status: "error", error: "User not found" });
     }
 
     const match = await bcrypt.compare(oldPassword, user.password);
 
     if (!match) {
-      return res.status(401).json({ error: "Incorrect old password" });
+      return res.status(401).json({ status_code: 401, status: "error", error: "Incorrect old password" });
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -214,13 +203,13 @@ const changePassword = async (req, res) => {
 
     user.password = hash;
     await user.save();
-
-    res.status(200).json({ message: "Password changed successfully" });
+    res.status(200).json({ status_code: 200, status: "success", message: "Password changed successfully"  });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ status_code: 500, status: "error", error: "Internal Server Error" });
   }
 };
+
 
 module.exports = {
   refreshToken,
@@ -230,3 +219,4 @@ module.exports = {
   requestNewOTP,
   changePassword,
 };
+    
