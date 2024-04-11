@@ -1,14 +1,9 @@
 const mongoose = require("mongoose");
 
-const transactionSchema = new mongoose.Schema({
+const fundingRequestSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
-    required: true,
-  },
-  type: {
-    type: String,
-    enum: ["funding_request", "withdrawal"],
     required: true,
   },
   amount: {
@@ -17,7 +12,7 @@ const transactionSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["pending", "completed"],
+    enum: ["pending", "approved", "rejected"],
     default: "pending",
   },
   createdAt: {
@@ -26,6 +21,6 @@ const transactionSchema = new mongoose.Schema({
   },
 });
 
-const Transaction = mongoose.model("Transaction", transactionSchema);
+const FundingRequest = mongoose.model("FundingRequest", fundingRequestSchema);
 
-module.exports = Transaction;
+module.exports = FundingRequest;
