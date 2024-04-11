@@ -27,7 +27,7 @@ const adminLogin = async (req, res) => {
       }
   
       
-      if (!admin.isActive) {
+      if (!admin.isVerified) {
         return res.status(401).json({
           status_code: 401,
           status: "error",
@@ -89,7 +89,7 @@ const adminRegister = async (req, res) => {
     const newAdmin = await Admin.create({
       email,
       password: hash,
-      isActive: false,
+      isVerified: false,
     });
 
     const otp = Math.floor(100000 + Math.random() * 900000);

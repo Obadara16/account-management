@@ -24,11 +24,19 @@ const userLogin = async (req, res) => {
       });
     }
 
-    if (!user.isActive) {
+    if (!user.isVerified) {
       return res.status(401).json({
         status_code: 401,
         status: "error",
         message: "Account has not been verified",
+      });
+    }
+
+    if (user.blocked) {
+      return res.status(401).json({
+        status_code: 401,
+        status: "error",
+        message: "Your account has been blocked. Please contact support for assistance.",
       });
     }
 
@@ -57,7 +65,7 @@ const userLogin = async (req, res) => {
           lastName: user.lastName,
           email: user.email,
           phoneNumber: user.phoneNumber,
-          isActive: user.isActive
+          isVerified: user.isVerified
         },
         accessToken
       }
@@ -71,6 +79,7 @@ const userLogin = async (req, res) => {
     });
   }
 };
+
 
 const userRegister = async (req, res) => {
   const { firstName, lastName, email, password, phoneNumber } = req.body;
@@ -94,7 +103,7 @@ const userRegister = async (req, res) => {
       email,
       password: hash,
       phoneNumber,
-      isActive: false,
+      isVerified: false,
     });
 
     const otp = Math.floor(100000 + Math.random() * 900000);
@@ -123,7 +132,7 @@ const userRegister = async (req, res) => {
           lastName: newUser.lastName,
           email: newUser.email,
           phoneNumber: newUser.phoneNumber,
-          isActive: newUser.isActive
+          isVerified: newUser.isVerified
         },
         accessToken
       }

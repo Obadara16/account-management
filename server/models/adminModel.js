@@ -12,9 +12,29 @@ const adminSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  firstName: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  lastName: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  gender: {
+    type: String
+  },
+  phoneNumber: {
+    type: String,
+    trim: true,
+  },  
+  img: {
+    type: String
+  },
   role: {
     type: String,
-    default: "admin", // Default role for admins
+    default: "admin", 
   },
   resetToken: {
     type: String,
@@ -22,9 +42,13 @@ const adminSchema = new mongoose.Schema({
   resetTokenExpires: {
     type: Date,
   },
-  isActive: {
+  isVerified: {
     type: Boolean,
     default: false,
+  },
+  createdAt: { 
+    type: Date, 
+    default: Date.now 
   },
 });
 

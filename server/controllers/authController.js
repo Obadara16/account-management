@@ -73,7 +73,7 @@ const verifyOTP = async (req, res) => {
     }
 
     
-    user.isActive = true;
+    user.isVerified = true;
     await user.save();
 
     res.status(200).json({ status_code: 200, status: "success", message: "OTP verified successfully" });
@@ -148,35 +148,37 @@ const requestNewOTP = async (req, res) => {
   const { email } = req.body;
 
   try {
-    
-    const verification = await Verification.findOne({ email });
+    const user = await User.findOne({ email });
 
-    
-    if (!verification) {
-      return res.status(404).json({ status_code: 404, status: "error", error: "Verification entry not found" });
+    if (!user || user.isVerified) {
+      return res.status(404).json({ status_code: 404, status: "error", error: "User not found or already verified" });
     }
 
-    
-    const otp = otpGenerator.generate(6, {
-      upperCase: false,
-      specialChars: false,
-    });
+    let verification = await Verification.findOne({ email });
 
-    
-    verification.otp = otp;
-    verification.otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000); 
-    await verification.save();
+    if (!verification) {
+      const otp = otpGenerator.generate(6, {
+        upperCase: false,
+        specialChars: false,
+      });
 
-    
-    await sendVerificationEmail(email, otp);
+      verification = await Verification.create({ email, otp });
 
-    
+      const otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000); 
+      setTimeout(async () => {
+        await Verification.findOneAndDelete({ email });
+      }, otpExpiresAt - Date.now());
+
+      await sendVerificationEmail(email, otp);
+    }
+
     res.status(200).json({ status_code: 200, status: "success", message: "New OTP sent successfully" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ status_code: 500, status: "error", error: "Internal Server Error" });
   }
 };
+
 
 const changePassword = async (req, res) => {
   const { email, oldPassword, newPassword } = req.body;

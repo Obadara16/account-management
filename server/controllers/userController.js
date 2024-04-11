@@ -1,34 +1,49 @@
 const User = require("../models/userModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const Admin = require("../models/adminModel");
+const upload = require('../middlewares/multer'); // Import Multer middleware for file upload
+const cloudinary = require('../middlewares/cloudinary');
+
+
 
 const getUserIdFromToken = (authHeader) => {
   const token = authHeader.split(" ")[1];
   const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-  return decodedToken._id;
+  return decodedToken.userId;
 };
 
+
 const updateUser = async (req, res) => {
-  const { lastName, firstName, phoneNumber} = req.body;
+  const { id } = req.params;
+  let { lastName, firstName, phoneNumber, gender } = req.body;
+  let img;
+
+  if (req.file) {
+      img = req.file.path; 
+  }
 
   try {
-    const userId = getUserIdFromToken(req.headers.authorization);
-    
-    const user = await User.findById(userId);
+      let user = await User.findById(id);
+      
+      if (!user) {
+          return res.status(404).json({ status_code: 404, status: "error", error: "User not found" });
+      }
+      
+      if (lastName) user.lastName = lastName;
+      if (firstName) user.firstName = firstName;
+      if (phoneNumber) user.phoneNumber = phoneNumber;
+      if (gender) user.gender = gender;
+      if (img) {
+          const result = await cloudinary.uploader.upload(img);
+          user.img = result.secure_url;
+      }
 
-    if (!user) {
-      throw new Error("User does not exist");
-    }
-    
-    if (lastName) user.lastName = lastName;
-    if (firstName) user.firstName = firstName;
-    if (phoneNumber) user.phoneNumber = phoneNumber;
+      await user.save();
 
-    await user.save();
-
-    res.status(200).json({ status_code: 200, status: "success", message: "User updated successfully", data: { user } });
+      res.status(200).json({ status_code: 200, status: "success", message: "User updated successfully", data: { user } });
   } catch (error) {
-    res.status(400).json({ status_code: 400, status: "error", error: error.message });
+      res.status(400).json({ status_code: 400, status: "error", error: error.message });
   }
 };
 
@@ -143,6 +158,62 @@ const searchUsers = async (req, res) => {
   }
 };
 
+const getAdmin = async (req, res) => {
+  const { adminId } = req.user;
+
+  try {
+    const admin = await Admin.findById(adminId);
+
+    if (!admin) {
+      return res.status(404).json({ status_code: 404, status: "error", error: "Admin not found" });
+    }
+
+    res.status(200).json({ status_code: 200, status: "success", data: { admin } });
+  } catch (error) {
+    res.status(400).json({ status_code: 400, status: "error", error: error.message });
+  }
+};
+
+const updateAdminProfile = async (req, res) => {
+  const { adminId } = req.user;
+  const { lastName, firstName, phoneNumber, gender } = req.body;
+  let img;
+
+  if (req.file) {
+    img = req.file.path; 
+  }
+
+  try {
+    let updateFields = {};
+    
+    if (lastName) updateFields.lastName = lastName;
+    if (firstName) updateFields.firstName = firstName;
+    if (phoneNumber) updateFields.phoneNumber = phoneNumber;
+    if (gender) updateFields.gender = gender;
+    if (img) {
+      const result = await cloudinary.uploader.upload(img);
+      updateFields.img = result.secure_url;
+    }
+
+    const updatedAdmin = await Admin.findOneAndUpdate(
+      { _id: adminId }, 
+      { $set: updateFields }, 
+      { new: true } 
+    );
+
+    if (!updatedAdmin) {
+      return res.status(404).json({ status_code: 404, status: "error", error: "Admin not found" });
+    }
+
+    res.status(200).json({ status_code: 200, status: "success", message: "Admin updated successfully", data: { admin: updatedAdmin } });
+  } catch (error) {
+    res.status(400).json({ status_code: 400, status: "error", error: error.message });
+  }
+};
+
+
+
+
 module.exports = {
   updateUser,
   deleteUser,
@@ -152,4 +223,6 @@ module.exports = {
   blockUser,
   unblockUser,
   searchUsers,
+  getAdmin,
+  updateAdminProfile,
 };

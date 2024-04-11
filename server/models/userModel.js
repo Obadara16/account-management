@@ -26,6 +26,12 @@ const userSchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
+  gender: {
+    type: String
+  },
+  img: {
+    type: String
+  },
   role: {
     type: String,
     default: "user",
@@ -36,9 +42,13 @@ const userSchema = new mongoose.Schema({
   resetTokenExpires: {
     type: Date,
   },
-  isActive: {
+  isVerified: {
     type: Boolean,
     default: false,
+  },
+  createdAt: { 
+    type: Date, 
+    default: Date.now 
   },
   deletedAt: {
     type: Date,
