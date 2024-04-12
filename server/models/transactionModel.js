@@ -17,8 +17,13 @@ const transactionSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["pending", "completed"],
+    enum: ["pending", "completed", "failed"],
     default: "pending",
+  },
+  requestId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "FundingRequest",
+    required: true,
   },
   createdAt: {
     type: Date,

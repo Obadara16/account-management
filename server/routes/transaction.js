@@ -1,13 +1,14 @@
-const express =require("express")
-const router = express.Router()
-const {createTransaction, getTransactionById, getTransactionsByUserId} = require('../controllers/transactionController')
-const { requireAuth,  requireAuthAndAdmin } = require("../middlewares/requireAuth");
+const express = require("express");
+const router = express.Router();
+const {
+  getTransactionById,
+  getTransactionsByUserId,
+  getAllTransactions
+} = require("../controllers/transactionController");
+const { requireAuthAndAuthorization, requireAuthAndAdmin } = require("../middlewares/requireAuth");
 
+router.get("/:id/:transactionId", requireAuthAndAuthorization, getTransactionById);
+router.get("/user/:id", requireAuthAndAuthorization, getTransactionsByUserId);
+router.get("/", requireAuthAndAdmin, getAllTransactions);
 
-
-router.post('/', requireAuth, createTransaction)
-router.get('/:transactionId', requireAuth, getTransactionById)
-router.get('/:userId/transactions', requireAuth, getTransactionsByUserId)
-
-
-module.exports = router
+module.exports = router;

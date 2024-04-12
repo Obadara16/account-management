@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const FundingRequest = require("../models/fundingRequestModel");
-const User = require("../models/authModel");
+const User = require("../models/userModel");
 const Transaction = require("../models/transactionModel");
 
 const addFunds = async (req, res) => {
@@ -27,6 +27,7 @@ const addFunds = async (req, res) => {
       type: "funding_request",
       amount,
       status: "pending",
+      requestId: fundingRequest._id,
       createdAt: new Date(),
     });
     await transaction.save();
@@ -46,11 +47,23 @@ const approveFundingRequest = async (req, res) => {
       return res.status(404).json({ status_code: 404, error: "Funding request not found" });
     }
 
+    
     fundingRequest.status = "approved";
     await fundingRequest.save();
 
+    
+    const user = await User.findById(fundingRequest.userId);
+    if (!user) {
+      return res.status(404).json({ status_code: 404, error: "User not found" });
+    }
+
+    
+    user.walletBalance += fundingRequest.amount;
+    await user.save();
+
+    
     const transaction = await Transaction.findOneAndUpdate(
-      { type: "funding_request", userId: fundingRequest.userId },
+      { requestId: requestId, type: "funding_request" },
       { status: "completed" },
       { new: true }
     );
@@ -60,6 +73,7 @@ const approveFundingRequest = async (req, res) => {
     res.status(400).json({ status_code: 400, error: error.message });
   }
 };
+
 
 const rejectFundingRequest = async (req, res) => {
   try {
@@ -73,15 +87,37 @@ const rejectFundingRequest = async (req, res) => {
     fundingRequest.status = "rejected";
     await fundingRequest.save();
 
+    const transaction = await Transaction.findOneAndUpdate(
+      { requestId: requestId, type: "funding_request" },
+      { status: "failed" },
+      { new: true }
+    );
+
+    if (!transaction) {
+      return res.status(404).json({ status_code: 404, error: "Transaction not found" });
+    }
+
     res.status(200).json({ status_code: 200, message: "Funding request rejected successfully" });
   } catch (error) {
     res.status(400).json({ status_code: 400, error: error.message });
   }
 };
 
+
+
+const getPendingFundingRequest = async (req, res) => {
+  try {
+    const pendingRequests = await FundingRequest.find({ status: "pending" });
+    res.status(200).json({ status_code: 200, data: pendingRequests });
+  } catch (error) {
+    res.status(500).json({ status_code: 500, error: "Internal Server Error" });
+  }
+};
+
 module.exports = {
   addFunds,
   approveFundingRequest,
-  rejectFundingRequest
+  rejectFundingRequest,
+  getPendingFundingRequest
 
 };

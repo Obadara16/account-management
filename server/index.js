@@ -3,6 +3,8 @@ const mongoose = require("mongoose");
 require("dotenv").config();
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
+const fundRoutes = require("./routes/fund");
+const transactionRoutes = require("./routes/transaction");
 const cors = require("cors");
 
 
@@ -42,3 +44,5 @@ mongoose
 
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
+app.use("/api/fund", fundRoutes);
+app.use("/api/transaction", transactionRoutes);
