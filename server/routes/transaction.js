@@ -8,7 +8,7 @@ const {
 const { requireAuthAndAuthorization, requireAuthAndAdmin } = require("../middlewares/requireAuth");
 
 router.get("/:id/:transactionId", requireAuthAndAuthorization, getTransactionById);
-router.get("/user/:id", requireAuthAndAuthorization, getTransactionsByUserId);
+router.get("/find/user/:id", requireAuthAndAuthorization, getTransactionsByUserId);
 router.get("/", requireAuthAndAdmin, getAllTransactions);
 
 module.exports = router;

@@ -10,8 +10,7 @@ const {
   blockUser,
   unblockUser,
   searchUsers,
-  getAdmin,
-  updateAdminProfile, 
+  changePassword
 } = require("../controllers/userController");
 const {
   requireAuth,
@@ -27,7 +26,6 @@ router.put("/:userId/balance", requireAuthAndAdmin, updateUserBalance);
 router.put("/:id/block", requireAuthAndAdmin, blockUser); 
 router.put("/:id/unblock", requireAuthAndAdmin, unblockUser); 
 router.get("/search", requireAuthAndAdmin, searchUsers); 
-router.get("/admin-profile", requireAuthAndAdmin, getAdmin); 
-router.put("/admin/update", requireAuthAndAdmin, upload.single('img'), updateAdminProfile); 
+router.put("/:id/password", requireAuthAndAuthorization, changePassword);
 
 module.exports = router;

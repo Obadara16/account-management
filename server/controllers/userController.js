@@ -158,58 +158,36 @@ const searchUsers = async (req, res) => {
   }
 };
 
-const getAdmin = async (req, res) => {
-  const { adminId } = req.user;
+
+const changePassword = async (req, res) => {
+  const { id } = req.params;
+  const { currentPassword, newPassword } = req.body;
 
   try {
-    const admin = await Admin.findById(adminId);
+    const user = await User.findById(id);
 
-    if (!admin) {
-      return res.status(404).json({ status_code: 404, status: "error", error: "Admin not found" });
+    if (!user) {
+      return res.status(404).json({ status_code: 404, status: "error", error: "User not found" });
     }
 
-    res.status(200).json({ status_code: 200, status: "success", data: { admin } });
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+
+    if (!isPasswordValid) {
+      return res.status(400).json({ status_code: 400, status: "error", error: "Current password is incorrect" });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+
+    await user.save();
+
+    res.status(200).json({ status_code: 200, status: "success", message: "Password changed successfully" });
   } catch (error) {
-    res.status(400).json({ status_code: 400, status: "error", error: error.message });
+    res.status(500).json({ status_code: 500, status: "error", error: error.message });
   }
 };
 
-const updateAdminProfile = async (req, res) => {
-  const { adminId } = req.user;
-  const { lastName, firstName, phoneNumber, gender } = req.body;
-  let img;
 
-  if (req.file) {
-    img = req.file.path; 
-  }
-
-  try {
-    let updateFields = {};
-    
-    if (lastName) updateFields.lastName = lastName;
-    if (firstName) updateFields.firstName = firstName;
-    if (phoneNumber) updateFields.phoneNumber = phoneNumber;
-    if (gender) updateFields.gender = gender;
-    if (img) {
-      const result = await cloudinary.uploader.upload(img);
-      updateFields.img = result.secure_url;
-    }
-
-    const updatedAdmin = await Admin.findOneAndUpdate(
-      { _id: adminId }, 
-      { $set: updateFields }, 
-      { new: true } 
-    );
-
-    if (!updatedAdmin) {
-      return res.status(404).json({ status_code: 404, status: "error", error: "Admin not found" });
-    }
-
-    res.status(200).json({ status_code: 200, status: "success", message: "Admin updated successfully", data: { admin: updatedAdmin } });
-  } catch (error) {
-    res.status(400).json({ status_code: 400, status: "error", error: error.message });
-  }
-};
 
 
 
@@ -223,6 +201,5 @@ module.exports = {
   blockUser,
   unblockUser,
   searchUsers,
-  getAdmin,
-  updateAdminProfile,
+  changePassword
 };

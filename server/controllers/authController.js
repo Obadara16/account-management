@@ -103,7 +103,7 @@ const forgotPassword = async (req, res) => {
     user.resetTokenExpires = Date.now() + 900000; 
     await user.save();
 
-    const resetLink = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+    const resetLink = `${process.env.CLIENT_URL}/reset-new-password/${resetToken}`;
 
     await sendResetPasswordEmail(email, resetLink);
 
