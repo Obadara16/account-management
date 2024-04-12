@@ -12,7 +12,7 @@ router.post('/login/admin', adminLogin);
 router.post('/refresh-token', refreshToken)
 router.post('/verify-otp', verifyOTP)
 router.post('/request-otp', requestNewOTP)
-router.put('/reset-password/:resetToken', resetPassword);
+router.put('/reset-new-password/:resetToken', resetPassword);
 router.post('/forgot-password', forgotPassword);
 router.put('/:id/change-password', requireAuthAndAuthorization ,changePassword)
 
