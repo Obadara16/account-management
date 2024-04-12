@@ -3,6 +3,9 @@ const jwt = require("jsonwebtoken");
 const Admin = require("../models/adminModel");
 const upload = require('../middlewares/multer'); 
 const cloudinary = require('../middlewares/cloudinary');
+const Transaction = require('../models/transactionModel');
+const User = require("../models/userModel");
+
 
 const changePassword = async (req, res) => {
   const { adminId } = req.user;
@@ -86,9 +89,68 @@ try {
 };
 
 
+const getAdminDashboardData = async () => {
+  try {
+    const totalBalance = await calculateTotalBalance();
+    const successfulTransactions = await countSuccessfulTransactions();
+    const failedTransactions = await countFailedTransactions();
+    const pendingTransactions = await countPendingTransactions();
+
+    return {
+      totalBalance,
+      successfulTransactions,
+      failedTransactions,
+      pendingTransactions
+    };
+  } catch (error) {
+    throw new Error('Error fetching admin dashboard data');
+  }
+};
+
+const calculateTotalBalance = async () => {
+  try {
+    const totalBalance = await User.aggregate([
+      { $group: { _id: null, totalBalance: { $sum: '$walletBalance' } } },
+    ]);
+
+    return totalBalance[0].totalBalance;
+  } catch (error) {
+    throw new Error('Error calculating total balance');
+  }
+};
+
+const countSuccessfulTransactions = async () => {
+  try {
+    const successfulTransactions = await Transaction.countDocuments({ status: 'completed' });
+    return successfulTransactions;
+  } catch (error) {
+    throw new Error('Error counting successful transactions');
+  }
+};
+
+const countFailedTransactions = async () => {
+  try {
+    const failedTransactions = await Transaction.countDocuments({ status: 'failed' });
+    return failedTransactions;
+  } catch (error) {
+    throw new Error('Error counting failed transactions');
+  }
+};
+
+const countPendingTransactions = async () => {
+  try {
+    const pendingTransactions = await Transaction.countDocuments({ status: 'pending' });
+    return pendingTransactions;
+  } catch (error) {
+    throw new Error('Error counting pending transactions');
+  }
+};
+
+
 
 module.exports = {
   changePassword,
   getAdmin,
-  updateAdmin
+  updateAdmin,
+  getAdminDashboardData
 };

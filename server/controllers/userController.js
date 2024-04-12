@@ -188,6 +188,19 @@ const changePassword = async (req, res) => {
 };
 
 
+const getUserBalance = async (userId) => {
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+    return user.walletBalance;
+  } catch (error) {
+    throw error;
+  }
+};
+
+
 
 
 
@@ -201,5 +214,6 @@ module.exports = {
   blockUser,
   unblockUser,
   searchUsers,
-  changePassword
+  changePassword,
+  getUserBalance
 };
