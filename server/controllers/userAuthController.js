@@ -40,6 +40,15 @@ const userLogin = async (req, res) => {
       });
     }
 
+    if (user.deletedAt) {
+      return res.status(401).json({
+        status_code: 401,
+        status: "error",
+        message: "Your account has been deleted. Please contact support for assistance.",
+      });
+    }
+
+
     const match = await bcrypt.compare(password, user.password);
 
     if (!match) {
