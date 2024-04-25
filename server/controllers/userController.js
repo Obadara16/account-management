@@ -107,14 +107,17 @@ const updateUserBalance = async (req, res) => {
 const getAllUsers = async (req, res) => {
   const query = req.query.new;
   try {
-    const users = query
-      ? await User.find().sort({ _id: -1 }).limit(5)
-      : await User.find();
+    let usersQuery = User.find();
+    if (!query) {
+      usersQuery = usersQuery.select("-password");
+    }
+    const users = await usersQuery.sort({ _id: -1 }).limit(5);
     res.status(200).json({ status_code: 200, status: "success", data: users });
   } catch (error) {
     res.status(500).json({ status_code: 500, status: "error", error: error.message });
   }
 };
+
 
 const blockUser = async (req, res) => {
   const { id } = req.params;
