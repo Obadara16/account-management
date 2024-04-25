@@ -12,63 +12,66 @@ const generateAccessToken = (adminId, role) => {
 };
 
 const adminLogin = async (req, res) => {
-    const { email, password } = req.body;
-  
-    try {
-      
-      const admin = await Admin.findOne({ email });
-  
-      if (!admin) {
-        return res.status(401).json({
-          status_code: 401,
-          status: "error",
-          message: "Incorrect Email"
-        });
-      }
-  
-      
-      if (!admin.isVerified) {
-        return res.status(401).json({
-          status_code: 401,
-          status: "error",
-          message: "Account has not been verified"
-        });
-      }
-  
-      
-      const match = await bcrypt.compare(password, admin.password);
-  
-      if (!match) {
-        return res.status(401).json({
-          status_code: 401,
-          status: "error",
-          message: "Incorrect Password"
-        });
-      }
-  
-      const role = admin.role || "admin"; 
-  
-      const accessToken = generateAccessToken(admin._id, role);
-  
-      res.status(200).json({
-        status_code: 200,
-        status: "success",
-        message: "Login successful",
-        data: {
-          admin,
-          accessToken
-        }
-      });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({
-        status_code: 500,
+  const { email, password } = req.body;
+
+  try {
+    
+    const user = await Admin.findOne({ email });
+
+    if (!user) {
+      return res.status(401).json({
+        status_code: 401,
         status: "error",
-        message: "Internal Server Error"
+        message: "Incorrect Email"
       });
     }
-  };
-  
+
+    
+    if (!user.isVerified) {
+      return res.status(401).json({
+        status_code: 401,
+        status: "error",
+        message: "Account has not been verified"
+      });
+    }
+
+    
+    const match = await bcrypt.compare(password, user.password);
+
+    if (!match) {
+      return res.status(401).json({
+        status_code: 401,
+        status: "error",
+        message: "Incorrect Password"
+      });
+    }
+
+    const role = user.role || "admin"; 
+    
+    // Destructure password field after initializing admin
+    const { password: adminPassword, ...admin } = user._doc;
+
+    const accessToken = generateAccessToken(user._id, role);
+
+    res.status(200).json({
+      status_code: 200,
+      status: "success",
+      message: "Login successful",
+      data: {
+        admin,
+        accessToken
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      status_code: 500,
+      status: "error",
+      message: "Internal Server Error"
+    });
+  }
+};
+
 
 const adminRegister = async (req, res) => {
   const { email, password } = req.body;
