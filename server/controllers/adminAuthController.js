@@ -48,7 +48,6 @@ const adminLogin = async (req, res) => {
 
     const role = user.role || "admin"; 
     
-    // Destructure password field after initializing admin
     const { password: adminPassword, ...admin } = user._doc;
 
     const accessToken = generateAccessToken(user._id, role);

@@ -3,14 +3,16 @@ const Transaction = require("../models/transactionModel");
 
 const getTransactionById = async (req, res, next) => {
   try {
-    const {id} = req.params; 
+    const { id } = req.params;
     const transaction = await Transaction.findOne({
       _id: req.params.transactionId,
-      userId: id 
-    }).populate("userId", "name email");
+      userId: id,
+    }).populate("userId", "firstName lastName email");
 
     if (!transaction) {
-      return res.status(404).json({ status_code: 404, status: "error", message: "Transaction not found" });
+      return res
+        .status(404)
+        .json({ status_code: 404, status: "error", message: "Transaction not found" });
     }
 
     res.status(200).json({ status_code: 200, status: "success", data: transaction });
@@ -19,23 +21,19 @@ const getTransactionById = async (req, res, next) => {
   }
 };
 
-
 const getTransactionsByUserId = async (req, res, next) => {
   try {
-    const {id} = req.params; 
-    const transactions = await Transaction.find({ userId: id }); 
+    const { id } = req.params;
+    const transactions = await Transaction.find({ userId: id }).populate("userId", "firstName lastName email");
     res.status(200).json({ status_code: 200, status: "success", data: transactions });
   } catch (err) {
     next(err);
   }
 };
 
-
-
-
 const getAllTransactions = async (req, res, next) => {
   try {
-    const transactions = await Transaction.find();
+    const transactions = await Transaction.find().populate("userId", "firstName lastName email");
     res.status(200).json({ status_code: 200, status: "success", data: transactions });
   } catch (err) {
     next(err);
