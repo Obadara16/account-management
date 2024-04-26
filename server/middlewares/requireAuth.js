@@ -24,7 +24,9 @@ const requireAuthAndAuthorization = async (req, res, next) => {
   try {
     await requireAuth(req, res, async () => {
       const userId = req.user.userId;
+      console.log("the user id from token:", userId)
       const { id } = req.params;
+      console.log("the id from params", id)
 
       if (userId === id || req.user.role === "admin") {
         next();

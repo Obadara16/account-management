@@ -111,7 +111,7 @@ const getAllUsers = async (req, res) => {
     if (!query) {
       usersQuery = usersQuery.select("-password");
     }
-    const users = await usersQuery.sort({ _id: -1 }).limit(5);
+    const users = await usersQuery.sort({ _id: -1 });
     res.status(200).json({ status_code: 200, status: "success", data: users });
   } catch (error) {
     res.status(500).json({ status_code: 500, status: "error", error: error.message });

@@ -107,7 +107,7 @@ const rejectFundingRequest = async (req, res) => {
 
 const getPendingFundingRequest = async (req, res) => {
   try {
-    const pendingRequests = await FundingRequest.find({ status: "pending" });
+    const pendingRequests = await FundingRequest.find({ status: "pending" }).populate("userId", "firstName lastName email");
     res.status(200).json({ status_code: 200, data: pendingRequests });
   } catch (error) {
     res.status(500).json({ status_code: 500, error: "Internal Server Error" });

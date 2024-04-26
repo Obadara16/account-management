@@ -23,7 +23,10 @@ const getTransactionById = async (req, res, next) => {
 
 const getTransactionsByUserId = async (req, res, next) => {
   try {
+
     const { id } = req.params;
+
+
     const transactions = await Transaction.find({ userId: id }).populate("userId", "firstName lastName email");
     res.status(200).json({ status_code: 200, status: "success", data: transactions });
   } catch (err) {
